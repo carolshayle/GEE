@@ -1,0 +1,64 @@
+
+var l7collection = ee.ImageCollection("LANDSAT/LE07/C01/T1_SR")
+          .filterBounds(Bound_geom)
+          .filterMetadata( 'CLOUD_COVER', 'less_than', 0.5)
+          .filterDate('2000-01-01', '2001-12-31');
+      
+
+      
+print (l7collection) 
+var composite = l7collection.mean().clip(Bound_geom);
+
+print(composite)
+//LANDSAT/LE07/C01/T1_SR
+//LANDSAT/LT05/C01/T1_SR
+//LANDSAT/LT05/C01/T1_8DAY_NDVI
+// create function to add NDVI using NIR (B5) and the red band (B4)
+var UI = composite.select('B5').subtract(composite.select('B4'))
+  .divide(composite.select('B5').add(composite.select('B4')));
+  
+var DBSI = composite.select('B5').subtract(composite.select('B2'))
+  .divide(composite.select('B5').add(composite.select('B2')));
+  
+var NDVI = composite.select('B4').subtract(composite.select('B3'))
+  .divide(composite.select('B4').add(composite.select('B3')));
+
+var Truecolour=composite.select(['B3', 'B2', 'B1']);
+
+
+Export.image.toDrive({
+  image: Truecolour,
+  description: 'True_colour_WGS84_2000',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
+
+
+Export.image.toDrive({
+  image: NDVI,
+  description: 'NDVI_WGS84_2000',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
+
+Export.image.toDrive({
+  image: UI,
+  description: 'UI_WGS84_2000',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
+
+Export.image.toDrive({
+  image: DBSI,
+  description: 'DBSI_WGS84_2000',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
