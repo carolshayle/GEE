@@ -1,0 +1,76 @@
+Imports (1 entry)
+  var
+  
+var l8collection = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
+          .filterBounds(Bound_geom)
+          .filterMetadata( 'CLOUD_COVER', 'less_than',4)
+          .filterDate('2020-07-01', '2020-08-31');
+      
+
+      
+print (l8collection) 
+var composite = l8collection.mean().clip(Bound_geom);
+
+print(composite)
+//LANDSAT/LE07/C01/T1_SR
+//LANDSAT/LT05/C01/T1_SR
+//LANDSAT/LT05/C01/T1_8DAY_NDVI
+// create function to add NDVI using NIR (B5) and the red band (B4)
+var UI = composite.select('B6').subtract(composite.select('B5'))
+  .divide(composite.select('B6').add(composite.select('B5')));
+  
+var DBSI = composite.select('B6').subtract(composite.select('B3'))
+  .divide(composite.select('B6').add(composite.select('B3')));
+  
+var SAVI = composite.select('B5').subtract(composite.select('B4').add(1.5))
+  .divide(composite.select('B5').add(composite.select('B4').add(0.5)));
+
+var Truecolour=composite.select(['B2','B3','B4'])
+
+// Compute the gray-level co-occurrence matrix (GLCM), get contrast.
+//var glcm_B6 = (composite.select('B6')).glcmTexture({size: 4});
+//var contrast_B6 = glcm_B6.select('N_contrast');
+
+//var glcm_B5 = (composite.select('B5')).glcmTexture({size: 4});
+//var contrast_B5 = glcm_B5.select('N_contrast');
+//Map.addLayer(contrast,{min: 0, max: 1500, palette: ['0000CC', 'CC0000']},'contrast');
+
+Export.image.toDrive({
+  image: Truecolour,
+  description: 'True_colour_WGS84_2015',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
+
+
+Export.image.toDrive({
+  image: SAVI,
+  description: 'SAVI_WGS84_2015',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
+
+Export.image.toDrive({
+  image: UI,
+  description: 'UI_WGS84_2015',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
+
+Export.image.toDrive({
+  image: DBSI,
+  description: 'DBSI_WGS84_2015',
+  scale: 30,
+  region: Bound_geom,
+  crs: 'EPSG:4326',
+  folder: 'GEE'
+});
+
+
+
